@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光影影院 - 用户中心</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="../static/base.css">
+    <link rel="stylesheet" href="../static/user.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-film"></i>
+                <h1>光影影院</h1>
+            </div>
+            <div class="user-info">
+                <span>欢迎，<span id="userid">{{userid}}</span></span>
+            </div>
+        </header>
+
+        <main>
+            <div class="user-nav">
+                <h2 class="section-title">正在放映</h2>
+                <div class="user-actions">
+                    <button id="ordersBtn" class="btn btn-orders">
+                        <i class="fas fa-ticket-alt"></i> 我的订单
+                    </button>
+                    <button class="btn btn-logout" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> 退出账户
+                    </button>
+                </div>
+            </div>
+            
+            <div class="movies-grid" id="moviesGrid">
+                <!-- 电影卡片将通过JS动态生成 -->
+            </div>
+        </main>
+
+    </div>
+
+    <script>
+        // DOM元素
+        const moviesGrid = document.getElementById('moviesGrid');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        
+
+        async function fetchMovies() {
+            const response = await fetch('/api/movies');
+            const movies = await response.json();
+            renderMovies(movies);
+        }
+        // 渲染电影列表
+        function renderMovies(movies) {
+            const moviesGrid = document.getElementById('moviesGrid');
+            moviesGrid.innerHTML = '';
+
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ffbe0b', '#fb5607', '#8338ec'];
+
+            movies.forEach(movie => {
+                const movieCard = document.createElement('div');
+                movieCard.className = 'movie-card';
+
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+                movieCard.innerHTML = `
+                    <div class="movie-poster" style="background:linear-gradient(45deg, ${randomColor}, #1a2a6c); position:relative;">
+                        <img src="/static/movie_images/${movie.PosterPath}" alt="${movie.MovieName}" style="width:100%; height:100%; object-fit:cover;">
+                        <div style="position:absolute; top:20px; left:20px; background:rgba(0,0,0,0.7); padding:5px 15px; border-radius:20px; font-weight:bold;">
+                        </div>
+                        <div style="position:absolute; bottom:20px; right:20px; background:rgba(0,0,0,0.7); padding:5px 15px; border-radius:20px;">
+                            ${movie.Duration}分钟
+                        </div>
+                    </div>
+                    <div class="movie-info">
+                        <h3 class="movie-title">${movie.MovieName}</h3>
+                        <div class="movie-meta">
+                            <span>导演: ${movie.Director}</span>
+                            <span class="movie-type">${movie.MovieType}</span>
+                        </div>
+                        <p class="movie-desc">${movie.Description}</p>
+                        <a href="/buy-ticket?movieID=${movie.MovieID}" class="book-btn">选座购票</a>
+                    </div>
+                `;
+
+                moviesGrid.appendChild(movieCard);
+            });
+        }
+        window.onload = fetchMovies;
+
+        // 退出登录
+        logoutBtn.addEventListener('click', () => {
+            window.location.href = '/logout';  // 访问后端的登出路由
+        });
+
+        const ordersBtn = document.getElementById('ordersBtn');
+        // 跳转到我的订单页面
+        ordersBtn.addEventListener('click', () => {
+            window.location.href = '/check_order';
+        });
+
+        // 初始化
+        renderMovies();
+    </script>
+</body>
+</html>

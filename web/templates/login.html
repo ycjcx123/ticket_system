@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光影影院 - 登录</title>
+
+    <!-- 引入图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="../static/base.css">
+    <link rel="stylesheet" href="../static/login.css">
+    
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-film"></i>
+                <h1>光影影院</h1>
+            </div>
+        </header>
+
+        <main>
+            <section class="hero">
+                <h2>光影世界，无限精彩</h2>
+                <p>在这里，体验最震撼的视听盛宴，享受最舒适的观影环境。最新大片、经典佳作，尽在光影影院。</p>
+                
+                <div class="btn-container">
+                    <button class="btn btn-primary" id="userLoginBtn">
+                        <i class="fas fa-user"></i> 用户登录
+                    </button>
+                    <button class="btn btn-secondary" id="adminLoginBtn">
+                        <i class="fas fa-lock"></i> 管理员登录
+                    </button>
+                </div>
+            </section>
+
+            <section class="login-form" id="userLoginForm">
+                <h2 class="form-title">用户登录</h2>
+                <div class="input-group">
+                    <label for="userid">用户名</label>
+                    <input type="text" id="userid" placeholder="请输入用户名">
+                </div>
+                <div class="input-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" placeholder="请输入密码">
+                </div>
+                <button class="btn btn-primary" style="width:100%;" id="userSubmit">
+                    <i class="fas fa-sign-in-alt"></i> 登录
+                </button>
+                <div class="register-link">
+                    不存在用户账户？<a href="#" id="registerLink">点此注册</a>
+                </div>
+            </section>
+
+            <section class="login-form" id="adminLoginForm">
+                <h2 class="form-title">管理员登录</h2>
+                <div class="input-group">
+                    <label for="adminId">管理员ID</label>
+                    <input type="text" id="adminId" placeholder="请输入管理员ID">
+                </div>
+                <div class="input-group">
+                    <label for="adminPassword">密码</label>
+                    <input type="password" id="adminPassword" placeholder="请输入密码">
+                </div>
+                <button class="btn btn-secondary" style="width:100%;" id="adminSubmit">
+                    <i class="fas fa-sign-in-alt"></i> 登录
+                </button>
+            </section>
+
+            <section class="login-form" id="userRegisterForm">
+                <h2 class="form-title">用户注册</h2>
+                <div class="input-group">
+                    <label for="register_userid">用户名</label>
+                    <input type="text" id="register_username" placeholder="请输入用户名">
+                </div>
+                <div class="input-group">
+                    <label for="password_1">密码</label>
+                    <input type="password" id="password_1" placeholder="请输入密码">
+                </div>
+                <div class="input-group">
+                    <label for="password_2">密码</label>
+                    <input type="password" id="password_2" placeholder="请确认密码">
+                </div>
+                <button class="btn btn-primary" style="width:100%;" id="userRegister">
+                    <i class="fas fa-sign-in-alt"></i> 注册
+                </button>
+
+            </section>
+
+        </main>
+
+        <div class="notification" id="notification">
+            登录成功！正在跳转...
+        </div>
+        
+    </div>
+
+    <script>
+        // DOM元素
+        const userLoginBtn = document.getElementById('userLoginBtn');
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const userLoginForm = document.getElementById('userLoginForm');
+        const adminLoginForm = document.getElementById('adminLoginForm');
+        const notification = document.getElementById('notification');
+        const registerLink = document.getElementById('registerLink');
+        const userSubmit = document.getElementById('userSubmit');
+        const adminSubmit = document.getElementById('adminSubmit');
+
+        const userRegisterBtn = document.getElementById('userRegisterBtn');
+        const userRegisterForm = document.getElementById('userRegisterForm');
+        const userRegister = document.getElementById('userRegister');
+
+        // 显示用户登录表单
+        userLoginBtn.addEventListener('click', () => {
+            userLoginForm.style.display = 'block';
+            adminLoginForm.style.display = 'none';
+            userRegisterForm.style.display = 'none';
+        });
+
+        // 显示管理员登录表单
+        adminLoginBtn.addEventListener('click', () => {
+            adminLoginForm.style.display = 'block';
+            userLoginForm.style.display = 'none';
+            userRegisterForm.style.display = 'none';
+        });
+
+        registerLink.addEventListener('click', () => {
+            adminLoginForm.style.display = 'none';
+            userLoginForm.style.display = 'none';
+            userRegisterForm.style.display = 'block';
+        });
+
+        // 用户登录
+        userSubmit.addEventListener('click', async () => {
+            const userid = document.getElementById('userid').value;
+            const password = document.getElementById('password').value;
+
+            if (userid && password) {
+                try {
+                    const response = await fetch('/user/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ userid, password })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showNotification('登录成功！正在跳转...');
+                        setTimeout(() => {
+                            window.location.href = '/user/home';
+                        }, 150);
+                    } else {
+                        showNotification('用户名或密码错误');
+                    }
+                } catch (err) {
+                    showNotification('登录请求失败');
+                }
+            } else {
+                showNotification('请输入用户名和密码！');
+            }
+        });
+
+
+        // 管理员登录
+        adminSubmit.addEventListener('click', async () => {
+            const adminId = document.getElementById('adminId').value;
+            const adminPassword = document.getElementById('adminPassword').value;
+            
+            if (adminId && adminPassword) {
+                try {
+                    const response = await fetch('/admin/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ adminId, adminPassword })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showNotification('管理员登录成功！正在跳转...');
+                        setTimeout(() => {
+                            window.location.href = '/admin/home';
+                        }, 150);
+                    } else {
+                        showNotification('管理员账号或密码错误');
+                    }
+                } catch (err) {
+                    showNotification('管理员登录请求失败');
+                }
+            } else {
+                showNotification('请输入管理员账号和密码！');
+            }
+        });
+
+        // 用户注册
+        userRegister.addEventListener('click', async () => {
+            const username = document.getElementById('register_username').value;
+            const password_1 = document.getElementById('password_1').value;
+            const password_2 = document.getElementById('password_2').value;
+
+            if (password_1 !== password_2) {
+                showNotification('两次输入的密码不一致，请重新输入！');
+                return;
+            } else if (!username || !password_1 || !password_2) {
+                showNotification('用户名和密码不能为空');
+                return;
+            } else if (username.toLowerCase() === 'admin') {
+                showNotification('用户名已存在，请更换用户名！');
+                return;
+            }
+
+            //  发送注册请求到后端
+            try {
+                const response = await fetch('/user/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password_1
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('注册成功！正在跳转...');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 200);
+                } else {
+                    showNotification('注册失败，用户名可能已存在');
+                }
+            } catch (err) {
+                showNotification('注册请求失败，请检查网络或稍后重试');
+            }
+        });
+
+        // 显示通知
+        function showNotification(message) {
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // 初始隐藏登录表单
+        userLoginForm.style.display = 'none';
+        adminLoginForm.style.display = 'none';
+        userRegisterForm.style.display = 'none';
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>光影影院 - 排期管理系统</title>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.15/index.global.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../static/creat_schedule.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <i class="fas fa-film"></i>
+        <h1>光影影院 - 排期管理系统</h1>
+      </div>
+      <div class="user-actions">
+        <button class="btn btn-secondary", onclick="window.location.href='/admin/home'">
+          <i class="fas fa-arrow-left"></i> 返回
+        </button>
+        <button class="btn btn-danger", onclick="window.location.href='/logout'">
+          <i class="fas fa-sign-out-alt"></i> 退出
+        </button>
+      </div>
+    </header>
+
+    <div class="actions-bar">
+      <div class="status-indicator fade-in">
+        <div class="status-dot"></div>
+        <span>所有更改已保存</span>
+      </div>
+      <div class="action-buttons">
+        <button id="addBtn" class="btn btn-primary"><i class="fas fa-plus"></i> 添加排片</button>
+        <button id="saveBtn" class="btn btn-success"><i class="fas fa-save"></i> 保存排期</button>
+      </div>
+    </div>
+
+    <div class="calendar-container">
+      <div id="calendar"></div>
+    </div>
+  </div>
+
+  <!-- 添加排片模态框 -->
+  <div id="addModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <button class="modal-close">&times;</button>
+      <h2 class="modal-header"><i class="fas fa-plus-circle"></i> 添加新排片</h2>
+      <div class="modal-step">
+        <div class="step active" id="step1">1. 选择电影</div>
+        <div class="step" id="step2">2. 选择影厅</div>
+        <div class="step" id="step3">3. 设置时间</div>
+      </div>
+
+      <!-- 选择电影 -->
+      <div id="step1-content">
+        <div class="form-group">
+          <div class="movie-grid" id="movieGrid"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-back" disabled>上一步</button>
+          <button class="btn btn-primary btn-next" id="toStep2">下一步</button>
+        </div>
+      </div>
+
+      <!-- 选择影厅 -->
+      <div id="step2-content" style="display:none;">
+        <div class="form-group">
+          <div class="hall-grid" id="hallGrid"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-back" id="toStep1">上一步</button>
+          <button class="btn btn-primary btn-next" id="toStep3">下一步</button>
+        </div>
+      </div>
+
+      <!-- 设置时间 -->
+      <div id="step3-content" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">日期</label>
+          <input type="date" id="scheduleDate" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">开始时间</label>
+          <div class="time-picker">
+            <select id="startHour" class="form-control"></select>
+            <select id="startMinute" class="form-control">
+              <option>00</option><option>15</option><option>30</option><option>45</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">结束时间</label>
+          <div class="end-time-display" id="endTimeDisplay">--:--</div>
+          <div class="time-notice">结束时间根据电影时长自动计算</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">基础价格（元）</label>
+          <input type="number" id="basePrice" class="form-control" min="0" step="0.01" value="45.00">
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-back" id="toStep2From3">上一步</button>
+          <button class="btn btn-success" id="addScheduleBtn">添加排片</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 修改排片模态框 -->
+  <div id="editModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <button class="modal-close">&times;</button>
+      <h2 class="modal-header"><i class="fas fa-edit"></i> 修改排片</h2>
+      
+      <div class="modal-section-title">电影信息</div>
+      <div class="movie-details">
+        <div class="detail-row">
+          <div class="detail-label">电影名称</div>
+          <div class="detail-value" id="editMovieTitle">--</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">时长</div>
+          <div class="detail-value" id="editMovieDuration">--</div>
+        </div>
+      </div>
+      
+      <div class="modal-section-title">排片信息</div>
+      
+      <div class="form-group">
+        <label class="form-label">日期</label>
+        <input type="date" id="editScheduleDate" class="form-control">
+      </div>
+      
+      <div class="modal-flex-group">
+        <div class="modal-flex-item">
+          <label class="form-label">开始时间</label>
+          <div class="time-picker">
+            <select id="editStartHour" class="form-control"></select>
+            <select id="editStartMinute" class="form-control">
+              <option>00</option><option>15</option><option>30</option><option>45</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="modal-flex-item">
+          <label class="form-label">结束时间</label>
+          <div class="end-time-display" id="editEndTimeDisplay">--:--</div>
+          <div class="time-notice">结束时间根据电影时长自动计算</div>
+        </div>
+      </div>
+      
+      <div class="modal-flex-group">
+        <div class="modal-flex-item">
+          <label class="form-label">基础价格</label>
+          <div class="price-input">
+            <input type="number" id="editBasePrice" class="form-control" min="0" step="0.01" placeholder="0.00">
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">影厅</label>
+        <div class="hall-grid" id="editHallGrid"></div>
+      </div>
+      
+      <div class="modal-actions">
+        <button id="deleteEditBtn" class="btn btn-danger">删除排片</button>
+        <div>
+          <button id="cancelEditBtn" class="btn btn-secondary">取消</button>
+          <button id="confirmEditBtn" class="btn btn-primary">确认修改</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.15/index.global.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 用来跟踪更新状态
+      let modifiedEvents = new Map(); // 使用Map存储修改事件，避免重复
+      let removedEvents = [];
+      let initialEvents = new Map(); // 存储事件的初始状态
+      let addedEvents = []; // <-- 必需：跟踪刚添加但还未保存到后端的事件
+      let currentEvent = null;
+      let resources = [], movies = [];
+
+      const movieGrid = document.getElementById('movieGrid');
+      const hallGrid = document.getElementById('hallGrid');
+      const editHallGrid = document.getElementById('editHallGrid');
+      let addState = { movie:null, hall:null };
+      const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+        initialView: 'resourceTimelineDay',
+        schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
+        resourceAreaHeaderContent: '影厅',
+        resourceAreaColumns: [
+          { field: 'title', headerContent: '影厅名称' },
+          { field: 'capacity', headerContent: '座位数' }
+        ],
+        slotMinTime: '08:00:00',
+        slotMaxTime: '24:00:00',
+        editable: true,
+        events: [],
+        resources: [],
+
+        // 显示电影 + 时间 + 金额
+        eventContent: function(arg) {
+          const price = arg.event.extendedProps.basePrice 
+                        ? `¥${arg.event.extendedProps.basePrice.toFixed(2)}` 
+                        : '';
+          return {
+            html: `
+              <div class="fc-event-title">${arg.event.title}</div>
+              <div class="fc-event-time">${formatTime(arg.event.start)} - ${formatTime(arg.event.end)}</div>
+              <div class="price-tag">${price}</div>
+            `
+          };
+        },
+
+        
+        eventAdd: handleEventAdd,
+        eventChange: handleEventChange,
+        eventRemove: handleEventRemove,
+
+        // 点击排期弹出窗口
+        eventClick: function(info) {
+          currentEvent = info.event;
+          openEditModal(currentEvent);
+        }
+      });
+      
+      function openEditModal(event) {
+        // 填充电影信息
+        document.getElementById('editMovieTitle').textContent = event.title;
+        
+        // 计算并显示时长
+        const duration = Math.round((event.end - event.start) / (1000 * 60));
+        document.getElementById('editMovieDuration').textContent = `${duration} 分钟`;
+        
+        // 设置日期
+        const eventDate = event.start;
+        document.getElementById('editScheduleDate').value = formatDate(eventDate);
+        
+        // 设置开始时间
+        const startHour = event.start.getHours().toString().padStart(2, '0');
+        const startMinute = event.start.getMinutes().toString().padStart(2, '0');
+        populateTimeSelect('editStartHour', 8, 23);
+        document.getElementById('editStartHour').value = startHour;
+        document.getElementById('editStartMinute').value = startMinute;
+        
+        // 设置结束时间显示
+        const endHour = event.end.getHours().toString().padStart(2, '0');
+        const endMinute = event.end.getMinutes().toString().padStart(2, '0');
+        document.getElementById('editEndTimeDisplay').textContent = `${endHour}:${endMinute}`;
+        
+        // 设置价格
+        const basePrice = event.extendedProps.basePrice || 0;
+        document.getElementById('editBasePrice').value = basePrice.toFixed(2);
+        
+        // 渲染影厅选择
+        renderEditHalls();
+        
+        // 设置当前影厅为选中状态
+        const resources = event.getResources();
+        if (resources && resources.length > 0) {
+          const currentHallId = resources[0].id;
+          const currentHallOption = document.querySelector(`.edit-hall-option[data-id="${currentHallId}"]`);
+          if (currentHallOption) {
+            currentHallOption.classList.add('selected');
+          }
+        }
+        
+        // 显示模态框
+        document.getElementById('editModal').style.display = 'flex';
+      }
+      
+      function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+      }
+      
+      function formatTime(date) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+      
+      function populateTimeSelect(selectId, minHour, maxHour) {
+        const select = document.getElementById(selectId);
+        if (select.options.length > 0) return; // 已经填充过
+        
+        for (let i = minHour; i <= maxHour; i++) {
+          const option = document.createElement('option');
+          option.value = i.toString().padStart(2, '0');
+          option.textContent = i.toString().padStart(2, '0');
+          select.appendChild(option);
+        }
+      }
+      
+      function renderEditHalls() {
+        editHallGrid.innerHTML = '';
+        resources.forEach(h => {
+          const div = document.createElement('div');
+          div.className = 'hall-option edit-hall-option';
+          div.dataset.id = h.id;
+          div.innerHTML = `<div>${h.title}</div><div>${h.capacity}座</div>`;
+          editHallGrid.appendChild(div);
+        });
+        
+        // 添加点击事件
+        editHallGrid.addEventListener('click', e => {
+          const target = e.target.closest('.edit-hall-option');
+          if (!target) return;
+          
+          document.querySelectorAll('.edit-hall-option').forEach(opt => {
+            opt.classList.remove('selected');
+          });
+          
+          target.classList.add('selected');
+        });
+      }
+
+      // 变更处理函数
+      function handleEventAdd(info) {
+        const event = info.event;
+        if (event.id.startsWith('temp_')) {
+          addedEvents.push(event);
+        }
+        setSavedState(false);
+      }
+
+      function handleEventChange(info) {
+        const event = info.event;
+
+        // 拖动/调整大小时，先检查 30 分钟冲突
+        if (checkEventConflict(event, event.id)) {
+          alert('时间冲突！与其他排片小于 30 分钟间隔');
+          info.revert();
+          return;
+        }
+
+        // 跳过新增未保存的事件
+        if (event.id.startsWith('temp_')) {
+          return;
+        }
+
+        // 获取当前资源ID（影厅）
+        const resources = event.getResources();
+        const currentResourceId = resources.length ? resources[0].id : null;
+
+        // 直接记录当前状态（保证保存是最终看到的状态）
+        modifiedEvents.set(event.id, {
+          event: event,
+          newResourceId: currentResourceId
+        });
+
+        setSavedState(false);
+      }
+
+      // 删除事件
+      function handleEventRemove(info) {
+        const event = info.event;
+        if (!event.id.startsWith('temp_')) {
+          removedEvents.push(event.id);
+          setSavedState(false);
+        }
+      }
+
+      // 加载数据时记录初始状态
+      function loadData() {
+        Promise.all([
+          fetch('/api/movies').then(r => r.json()),
+          fetch('/api/halls').then(r => r.json()),
+          fetch('/api/schedules').then(r => r.json())
+        ]).then(([mData, hData, sData]) => {
+          movies = mData;
+          resources = hData.map(h => ({
+            id: h.HallID, 
+            title: h.HallName, 
+            capacity: h.SeatCount
+          }));
+          
+          calendar.setOption('resources', resources);
+          
+          sData.forEach(s => {
+            const event = calendar.addEvent({
+              id: s.ScheduleID,
+              resourceId: s.HallID,
+              start: `${s.ScheduleDate}T${s.StartTime}`,
+              end: `${s.ScheduleDate}T${s.EndTime}`,
+              title: s.MovieName,
+              extendedProps: {
+                basePrice: s.BasePrice
+              },
+              color: getRandomColor()
+            });
+            
+            // 记录初始状态（关键修改：添加resourceId）
+            const resources = event.getResources();
+            const resourceId = resources.length ? resources[0].id : null;
+            
+            initialEvents.set(s.ScheduleID, {
+              start: event.start,
+              end: event.end,
+              basePrice: s.BasePrice,
+              resourceId: resourceId  // 使用实际资源ID
+            });
+          });
+          
+          renderMovies();
+          renderHalls();
+          calendar.render();
+          setSavedState(true);
+          
+          // 添加结束时间计算监听
+          addEndTimeCalculation();
+        });
+      }
+
+      loadData();
+
+      function renderMovies(){
+        movieGrid.innerHTML = '';
+        movies.forEach(m=>{
+          const div = document.createElement('div');
+          div.className = 'movie-option';
+          div.dataset.id = m.MovieID;
+          div.innerHTML = `<div class="movie-title">${m.MovieName}</div><div>${m.Duration}分钟</div>`;
+          movieGrid.appendChild(div);
+        });
+      }
+      
+      function renderHalls(){
+        hallGrid.innerHTML = '';
+        resources.forEach(h=>{
+          const div = document.createElement('div');
+          div.className = 'hall-option';
+          div.dataset.id = h.id;
+          div.innerHTML = `<div>${h.title}</div><div>${h.capacity}座</div>`;
+          hallGrid.appendChild(div);
+        });
+      }
+      
+      function addEndTimeCalculation() {
+        // 添加排片结束时间计算
+        const startHour = document.getElementById('startHour');
+        const startMinute = document.getElementById('startMinute');
+        const scheduleDate = document.getElementById('scheduleDate');
+        
+        const calculateEndTime = () => {
+          if (!addState.movie) return;
+          
+          const date = scheduleDate.value;
+          const hour = startHour.value;
+          const minute = startMinute.value;
+          
+          if (!date || !hour || !minute) return;
+          
+          const start = new Date(`${date}T${hour}:${minute}:00`);
+          const end = new Date(start);
+          end.setMinutes(end.getMinutes() + addState.movie.Duration);
+          
+          const endHour = end.getHours().toString().padStart(2, '0');
+          const endMinute = end.getMinutes().toString().padStart(2, '0');
+          
+          document.getElementById('endTimeDisplay').textContent = `${endHour}:${endMinute}`;
+          
+          // 检查是否跨天
+          if (end.getDate() !== start.getDate()) {
+            document.querySelector('.time-notice').textContent = 
+              `结束时间跨越到次日 ${end.getDate()} 号，请确认`;
+            document.querySelector('.time-notice').style.color = '#ff6b00';
+          } else {
+            document.querySelector('.time-notice').textContent = 
+              '结束时间根据电影时长自动计算';
+            document.querySelector('.time-notice').style.color = '#aaa';
+          }
+        };
+        
+        startHour.addEventListener('change', calculateEndTime);
+        startMinute.addEventListener('change', calculateEndTime);
+        scheduleDate.addEventListener('change', calculateEndTime);
+        
+        // 修改排片结束时间计算
+        const editStartHour = document.getElementById('editStartHour');
+        const editStartMinute = document.getElementById('editStartMinute');
+        const editScheduleDate = document.getElementById('editScheduleDate');
+        
+        const calculateEditEndTime = () => {
+          if (!currentEvent) return;
+          
+          const date = editScheduleDate.value;
+          const hour = editStartHour.value;
+          const minute = editStartMinute.value;
+          
+          if (!date || !hour || !minute) return;
+          
+          const start = new Date(`${date}T${hour}:${minute}:00`);
+          const end = new Date(start);
+          
+          // 从当前事件获取电影时长
+          const duration = Math.round((currentEvent.end - currentEvent.start) / (1000 * 60));
+          end.setMinutes(end.getMinutes() + duration);
+          
+          const endHour = end.getHours().toString().padStart(2, '0');
+          const endMinute = end.getMinutes().toString().padStart(2, '0');
+          
+          document.getElementById('editEndTimeDisplay').textContent = `${endHour}:${endMinute}`;
+          
+          // 检查是否跨天
+          if (end.getDate() !== start.getDate()) {
+            document.querySelector('#editModal .time-notice').textContent = 
+              `结束时间跨越到次日 ${end.getDate()} 号，请确认`;
+            document.querySelector('#editModal .time-notice').style.color = '#ff6b00';
+          } else {
+            document.querySelector('#editModal .time-notice').textContent = 
+              '结束时间根据电影时长自动计算';
+            document.querySelector('#editModal .time-notice').style.color = '#aaa';
+          }
+        };
+        
+        editStartHour.addEventListener('change', calculateEditEndTime);
+        editStartMinute.addEventListener('change', calculateEditEndTime);
+        editScheduleDate.addEventListener('change', calculateEditEndTime);
+      }
+
+      movieGrid.addEventListener('click', e=>{
+        const target = e.target.closest('.movie-option');
+        if(!target) return;
+        document.querySelectorAll('.movie-option').forEach(opt=>opt.classList.remove('selected'));
+        target.classList.add('selected');
+        addState.movie = movies.find(m=>m.MovieID===target.dataset.id);
+      });
+      
+      hallGrid.addEventListener('click', e=>{
+        const target = e.target.closest('.hall-option');
+        if(!target) return;
+        document.querySelectorAll('.hall-option').forEach(opt=>opt.classList.remove('selected'));
+        target.classList.add('selected');
+        addState.hall = resources.find(r=>r.id===target.dataset.id);
+      });
+
+      document.getElementById('addBtn').addEventListener('click', ()=>{
+        document.getElementById('addModal').style.display='flex';
+        document.getElementById('scheduleDate').value = new Date().toISOString().split('T')[0];
+        const hourSel = document.getElementById('startHour');
+        hourSel.innerHTML='';
+        for(let i=8;i<=23;i++){
+          const opt=document.createElement('option');opt.value=opt.textContent=String(i).padStart(2,'0');hourSel.appendChild(opt);
+        }
+      });
+      
+      document.querySelectorAll('.modal-close').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const modal = e.target.closest('.modal-overlay');
+          modal.style.display = 'none';
+        });
+      });
+      
+      document.getElementById('toStep2').addEventListener('click', ()=>{
+        if(!addState.movie){alert('请选择电影');return;}
+        showStep(2);
+      });
+      
+      document.getElementById('toStep1').addEventListener('click', ()=> showStep(1));
+      
+      document.getElementById('toStep3').addEventListener('click', ()=>{
+        if(!addState.hall){alert('请选择影厅');return;}
+        showStep(3);
+      });
+      
+      document.getElementById('toStep2From3').addEventListener('click', ()=> showStep(2));
+
+      // 添加新排期
+      document.getElementById('addScheduleBtn').addEventListener('click', () => {
+        const date = document.getElementById('scheduleDate').value;
+        const hour = document.getElementById('startHour').value;
+        const minute = document.getElementById('startMinute').value;
+        const price = parseFloat(document.getElementById('basePrice').value) || 0;
+        
+        const start = new Date(`${date}T${hour}:${minute}:00`);
+        const end = new Date(start);
+        end.setMinutes(end.getMinutes() + addState.movie.Duration);
+        
+        const newEvent = {
+          id: 'temp_' + Date.now(), // 临时ID
+          resourceId: addState.hall.id,
+          start,
+          end,
+          title: addState.movie.MovieName,
+          extendedProps: {
+            basePrice: price,
+            movieId: addState.movie.MovieID,
+            hallId: addState.hall.id
+          },
+          color: getRandomColor()
+        };
+        
+        if (checkEventConflict(newEvent)) {
+          alert('时间冲突！请选择其他时间或影厅');
+          return;
+        }
+        
+        calendar.addEvent(newEvent);
+        document.getElementById('addModal').style.display = 'none';
+        setSavedState(false);
+      });
+
+      // 保存按钮事件
+      document.getElementById('saveBtn').addEventListener('click', async () => {
+        if (!hasUnsavedChanges()) {
+          alert('没有需要保存的更改');
+          return;
+        }
+        
+        // 构建保存数据
+        const saveData = {
+          added: addedEvents.map(event => ({
+            tempId: event.id,
+            movieId: event.extendedProps.movieId,
+            hallId: event.extendedProps.hallId,
+            scheduleDate: formatDate(event.start),
+            startTime: formatTime(event.start),
+            endTime: formatTime(event.end),
+            basePrice: event.extendedProps.basePrice
+          })),
+          modified: Array.from(modifiedEvents.values()).map(change => {
+            const event = change.event;
+            
+            // 获取资源ID
+            const resources = event.getResources();
+            const hallId = resources.length ? resources[0].id : null;
+            
+            return {
+              scheduleId: event.id,
+              startTime: formatTime(event.start),
+              endTime: formatTime(event.end),
+              basePrice: event.extendedProps.basePrice,
+              hallId: hallId  // 使用实际资源ID
+            };
+          }),
+          removed: removedEvents
+        };
+        
+        try {
+          console.log(JSON.stringify(saveData, null, 2));
+
+          const response = await fetch('/api/schedules/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(saveData)
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            // 更新新增事件的ID
+            result.addedIds.forEach(({ tempId, newId }) => {
+              const event = calendar.getEventById(tempId);
+              if (event) {
+                event.setProp('id', newId);
+                // 记录新ID的初始状态（关键修改：添加resourceId）
+                const resources = event.getResources();
+                const resourceId = resources.length ? resources[0].id : null;
+                
+                initialEvents.set(newId, {
+                  start: event.start,
+                  end: event.end,
+                  basePrice: event.extendedProps.basePrice,
+                  resourceId: resourceId  // 记录当前影厅ID
+                });
+              }
+            });
+            
+            // 重置变更跟踪
+            addedEvents = [];
+            modifiedEvents.clear();
+            removedEvents = [];
+            
+            setSavedState(true);
+            alert('保存成功！');
+          } else {
+            alert(`保存失败: ${result.message}`);
+          }
+        } catch (error) {
+          console.error('保存错误:', error);
+          alert('保存过程中发生错误');
+        }
+      });
+
+      // 确认修改按钮
+      document.getElementById('confirmEditBtn').addEventListener('click', () => {
+        if (!currentEvent) return;
+        
+        // 获取新日期
+        const newDate = document.getElementById('editScheduleDate').value;
+        
+        // 获取新开始时间
+        const startHour = document.getElementById('editStartHour').value;
+        const startMinute = document.getElementById('editStartMinute').value;
+        const newStart = new Date(`${newDate}T${startHour}:${startMinute}:00`);
+        
+        // 获取新结束时间（根据时长自动计算）
+        const endTimeDisplay = document.getElementById('editEndTimeDisplay').textContent;
+        const [endHour, endMinute] = endTimeDisplay.split(':');
+        const newEnd = new Date(`${newDate}T${endHour}:${endMinute}:00`);
+        
+        // 获取新价格
+        const newPrice = parseFloat(document.getElementById('editBasePrice').value) || 0;
+        
+        // 获取新影厅
+        const selectedHallOption = document.querySelector('.edit-hall-option.selected');
+        if (!selectedHallOption) {
+          alert('请选择影厅');
+          return;
+        }
+        const newHallId = selectedHallOption.dataset.id;
+        
+        // 创建新事件对象用于冲突检查
+        const newEvent = {
+          id: currentEvent.id,
+          resourceId: newHallId,
+          start: newStart,
+          end: newEnd,
+          title: currentEvent.title,
+          extendedProps: {
+            basePrice: newPrice,
+            movieId: currentEvent.extendedProps.movieId,
+            hallId: newHallId
+          }
+        };
+        
+        // 检查冲突（排除自身）
+        if (checkEventConflict(newEvent, currentEvent.id)) {
+          alert('时间冲突！请选择其他时间或影厅');
+          return;
+        }
+        
+        // 更新事件属性
+        currentEvent.setStart(newStart);
+        currentEvent.setEnd(newEnd);
+        currentEvent.setExtendedProp('basePrice', newPrice);
+        currentEvent.setResources([newHallId]);
+        
+        // 关闭模态框
+        closeEditModal();
+      });
+      
+      // 删除按钮
+      document.getElementById('deleteEditBtn').addEventListener('click', () => {
+        if (!currentEvent) return;
+        
+        if (confirm('确定要删除这个排片吗？此操作不可撤销！')) {
+          // 如果是临时事件，从addedEvents中移除
+          if (currentEvent.id.startsWith('temp_')) {
+            addedEvents = addedEvents.filter(e => e.id !== currentEvent.id);
+          } 
+          // 如果是已保存的事件，添加到removedEvents
+          else {
+            removedEvents.push(currentEvent.id);
+            setSavedState(false);
+          }
+          
+          // 从日历中移除事件
+          currentEvent.remove();
+          
+          // 关闭模态框
+          closeEditModal();
+        }
+      });
+      
+      // 取消修改按钮
+      document.getElementById('cancelEditBtn').addEventListener('click', () => {
+        closeEditModal();
+      });
+
+      // 各种辅助函数
+      function formatDate(date) {
+        return date.toISOString().split('T')[0];
+      }
+      
+      function formatTime(date) {
+        const pad = num => num.toString().padStart(2, '0');
+        return `${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+      }
+      
+      function hasUnsavedChanges() {
+        return addedEvents.length > 0 || modifiedEvents.size > 0 || removedEvents.length > 0;
+      }
+
+      function showStep(n){
+        document.getElementById('step1').classList.toggle('active', n===1);
+        document.getElementById('step2').classList.toggle('active', n===2);
+        document.getElementById('step3').classList.toggle('active', n===3);
+        document.getElementById('step1-content').style.display = n===1?'block':'none';
+        document.getElementById('step2-content').style.display = n===2?'block':'none';
+        document.getElementById('step3-content').style.display = n===3?'block':'none';
+      }
+      
+      function getRandomColor(){
+        const colors=['#FF6B6B','#4ECDC4','#FFD93D','#6A67CE','#FF9F45','#1DD1A1','#54A0FF','#FF9FF3'];
+        return colors[Math.floor(Math.random()*colors.length)];
+      }
+      
+      function checkEventConflict(event, excludeId = null) {
+        const events = calendar.getEvents();
+
+        const getResourceId = ev => {
+          if (!ev) return null;
+          if (typeof ev.getResources === 'function') {
+            const rs = ev.getResources();
+            return rs && rs.length ? rs[0].id : null;
+          }
+          if (ev.resourceId) return ev.resourceId;
+          if (ev.extendedProps && ev.extendedProps.hallId) return ev.extendedProps.hallId;
+          return null;
+        };
+
+        const eventResId = getResourceId(event);
+        if (!eventResId) return false;
+
+        const toMillis = t => {
+          if (t instanceof Date) return t.getTime();
+          return new Date(t).getTime();
+        };
+
+        return events.some(e => {
+          if (e.id === event.id || (excludeId && e.id === excludeId)) return false;
+
+          const eResId = getResourceId(e);
+          if (!eResId || eResId !== eventResId) return false;
+
+          const cleanBefore = 30 * 60 * 1000;
+          const cleanAfter = 30 * 60 * 1000;
+
+          const eventStart = toMillis(event.start) - cleanBefore;
+          const eventEnd = toMillis(event.end) + cleanAfter;
+          const eStart = toMillis(e.start);
+          const eEnd = toMillis(e.end);
+
+          return eventStart < eEnd && eventEnd > eStart;
+        });
+      }
+      
+      function setSavedState(saved) {
+        const indicator = document.querySelector('.status-indicator');
+        const textSpan = indicator.querySelector('span');
+        
+        if (saved) {
+          indicator.classList.remove('unsaved');
+          textSpan.textContent = '所有更改已保存';
+        } else {
+          indicator.classList.add('unsaved');
+          textSpan.textContent = '有未保存的更改';
+        }
+      }
+    });
+  </script>
+</body>
+</html>

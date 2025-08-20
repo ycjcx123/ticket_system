@@ -1,0 +1,573 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #0f1b3a, #1a1a2e, #0a1536);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 30px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo i {
+    font-size: 2.5rem;
+    color: #ffcc00;
+}
+
+.logo h1 {
+    font-size: 2rem;
+    background: linear-gradient(to right, #ffcc00, #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn {
+    padding: 12px 25px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary {
+    background: linear-gradient(to right, #ffcc00, #ff6b00);
+    color: #1a1a2e;
+}
+
+.btn-secondary {
+    background: linear-gradient(to right, #1e3c72, #2a5298);
+    color: white;
+}
+
+.btn-orders {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.btn-logout {
+    background: rgba(255, 100, 100, 0.2);
+    color: #ff6b6b;
+}
+
+footer {
+    text-align: center;
+    padding: 30px 0;
+    margin-top: auto;
+    color: #aaa;
+    font-size: 0.9rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 1000;
+    border-left: 4px solid #ffcc00;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 选座页面特定样式 */
+.booking-header {
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 204, 0, 0.2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: space-between;
+    backdrop-filter: blur(5px);
+}
+
+.movie-info {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.movie-poster {
+    width: 160px;
+    height: 220px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.movie-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.movie-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.movie-title {
+    font-size: 1.8rem;
+    color: #ffcc00;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.movie-meta {
+    display: flex;
+    gap: 15px;
+    color: #ddd;
+    font-size: 1rem;
+    flex-wrap: wrap;
+}
+
+.movie-meta span {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.booking-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 280px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(255, 204, 0, 0.15);
+}
+
+.booking-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.booking-label {
+    color: #bbb;
+    font-weight: 500;
+}
+
+.booking-value {
+    font-weight: 500;
+    color: #ffcc00;
+    text-align: right;
+    min-width: 150px;
+}
+
+/* 选座区域 */
+.seating-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.screen-container {
+    position: relative;
+    width: 90%;
+    margin-bottom: 80px;
+}
+
+.screen {
+    width: 100%;
+    height: 35px;
+    background: linear-gradient(to bottom, #d9d9d9, #8c8c8c);
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 1.1rem;
+    z-index: 2;
+}
+
+.screen-reflection {
+    position: absolute;
+    top: 100%;
+    left: 10%;
+    right: 10%;
+    height: 60px;
+    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.25) 0%, transparent 80%);
+    z-index: 1;
+}
+
+.seats-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.seat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.row-letter {
+    color: #ffcc00;
+    font-weight: bold;
+    width: 24px;
+    text-align: center;
+    font-size: 0.9rem;
+    margin-right: 5px;
+}
+
+.seat {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background-color: #1e3c72;
+    color: #fff;
+    text-align: center;
+    line-height: 36px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.seat::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    bottom: 3px;
+    border-radius: 6px;
+    background: #2a5298;
+    z-index: 1;
+    transition: all 0.2s ease;
+}
+
+.seat span {
+    position: relative;
+    z-index: 2;
+    opacity: 0.9;
+    font-weight: 600;
+}
+
+.seat:hover {
+    transform: scale(1.05);
+}
+
+.seat:hover::before {
+    background: #3a62b8;
+}
+
+.seat.selected::before {
+    background: linear-gradient(135deg, #ffcc00, #ff6b00);
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+}
+
+.seat.vip {
+    background: linear-gradient(135deg, #9d50bb, #6e48aa);
+}
+
+.seat.vip::before {
+    background: linear-gradient(135deg, #b56bd6, #8a5fc0);
+}
+
+.seat.vip.selected::before {
+    background: linear-gradient(135deg, #ff9a00, #ff6b00);
+    box-shadow: 0 0 15px rgba(255, 154, 0, 0.5);
+}
+
+.seat.occupied::before {
+    background: #333;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.seat.occupied span {
+    opacity: 0.4;
+}
+
+/* 座位图例 */
+.seat-legend {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 40px 0 20px;
+    flex-wrap: wrap;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 15px 25px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+}
+
+.legend-color {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.available-color {
+    background: #2a5298;
+}
+
+.vip-color {
+    background: linear-gradient(135deg, #9d50bb, #6e48aa);
+}
+
+.selected-color {
+    background: linear-gradient(135deg, #ffcc00, #ff6b00);
+}
+
+.occupied-color {
+    background: #333;
+}
+
+/* 选座信息 */
+.booking-summary {
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 204, 0, 0.2);
+    margin-top: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.summary-title {
+    font-size: 1.6rem;
+    background: linear-gradient(to right, #ffcc00, #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}
+
+.total-price {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ffcc00;
+    transition: transform 0.3s ease;
+}
+
+.price-change {
+    animation: pricePulse 0.5s ease;
+}
+
+@keyframes pricePulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.selected-seats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 25px 0;
+    min-height: 70px;
+}
+
+.no-seats {
+    color: #aaa;
+    font-style: italic;
+    width: 100%;
+    text-align: center;
+    padding: 20px;
+}
+
+.selected-seat {
+    background: rgba(255, 204, 0, 0.15);
+    border: 1px solid rgba(255, 204, 0, 0.3);
+    border-radius: 8px;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.selected-seat.vip {
+    background: rgba(157, 80, 187, 0.2);
+    border: 1px solid rgba(157, 80, 187, 0.4);
+}
+
+.selected-seat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.seat-remove {
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0;
+    transition: transform 0.2s;
+}
+
+.seat-remove:hover {
+    transform: scale(1.2);
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+/* 响应式设计 */
+@media (max-width: 992px) {
+    .booking-header {
+        flex-direction: column;
+    }
+    
+    .booking-meta {
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .logo h1 {
+        font-size: 1.7rem;
+    }
+    
+    .movie-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .movie-poster {
+        width: 140px;
+        height: 200px;
+    }
+    
+    .seat {
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .seat-legend {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        border-radius: 15px;
+        padding: 15px;
+    }
+    
+    .screen {
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+    }
+    
+    .movie-title {
+        font-size: 1.5rem;
+    }
+}

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光影影院 - 管理后台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/base.css">
+    <link rel="stylesheet" href="../static/admin.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-film"></i>
+                <h1>光影影院 - 管理后台</h1>
+            </div>
+            <div class="user-info">
+                <span>管理员：<span id="adminNameDisplay">admin</span></span>
+            </div>
+        </header>
+
+        <main>
+            <div class="admin-nav">
+                <h2 class="section-title">影院管理面板</h2>
+                <div class="user-actions">
+                    <button class="btn btn-dashboard" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i> 刷新数据
+                    </button>
+                    <button class="btn btn-logout" id="adminLogoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> 退出系统
+                    </button>
+                </div>
+            </div>
+            
+            <div class="dashboard">
+                <div class="dashboard-card">
+                    <h3 class="card-title"><i class="fas fa-ticket-alt"></i> 今日售票情况</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">¥0</div>
+                            <div class="stat-label">今日票房</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">0</div>
+                            <div class="stat-label">今日订单</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">0%</div>
+                            <div class="stat-label">上座率</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">0</div>
+                            <div class="stat-label">今日排期数</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3 class="card-title"><i class="fas fa-film"></i> 管理操作</h3>
+                    
+                    <!-- 修改开始：将排片管理改为按钮 -->
+                    <div class="management-actions">
+                        <button class="btn-schedule" id="viewScheduleBtn">
+                            <i class="fas fa-calendar-alt"></i> 电影排片管理
+                        </button>
+                        <button class="btn-orders" id="viewOrdersBtn", onclick="window.location.href='/check_order'">
+                            <i class="fas fa-list"></i> 查看全部订单
+                        </button>
+                    </div>
+                    <!-- 修改结束 -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i> 操作成功！
+    </div>
+
+    <script>
+        // DOM元素
+        const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+        const adminNameDisplay = document.getElementById('adminNameDisplay');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const viewScheduleBtn = document.getElementById('viewScheduleBtn');
+        const notification = document.getElementById('notification');
+
+        // 从URL参数中获取管理员名（模拟）
+        const urlParams = new URLSearchParams(window.location.search);
+        const adminName = urlParams.get('admin') || 'admin';
+        adminNameDisplay.textContent = adminName;
+
+        // 查看/更改排片按钮事件
+        viewScheduleBtn.addEventListener('click', function () {
+            showNotification('正在跳转至排片管理页面...');
+            window.location.href = '/create_schedule';
+        });
+
+        // 刷新数据按钮事件
+        refreshBtn.addEventListener('click', function () {
+            loadDashboardData();
+            showNotification('数据刷新成功！');
+            refreshBtn.querySelector('i').classList.add('fa-spin');
+            setTimeout(() => {
+                refreshBtn.querySelector('i').classList.remove('fa-spin');
+            }, 1000);
+        });
+
+        // 退出登录
+        adminLogoutBtn.addEventListener('click', function () {
+            if (confirm('确定要退出系统吗？')) {
+                window.location.href = '/logout';
+            }
+        });
+
+        // 显示通知
+        function showNotification(message) {
+            notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // 从后端加载数据并更新到页面
+        function loadDashboardData() {
+            fetch('/api/admin/dashboard')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const stats = data.data;
+                        // 今日票房
+                        document.querySelector('.stat-item:nth-child(1) .stat-value')
+                            .textContent = `¥${stats.total_sales}`;
+                        // 今日订单
+                        document.querySelector('.stat-item:nth-child(2) .stat-value')
+                            .textContent = stats.order_count;
+                        // 上座率
+                        document.querySelector('.stat-item:nth-child(3) .stat-value')
+                            .textContent = `${stats.seat_rate}%`;
+                        // 今日排期数
+                        document.querySelector('.stat-item:nth-child(4) .stat-value')
+                            .textContent = stats.schedule_count;
+                            
+                        document.querySelector('#scheduleCount')
+                            .textContent = stats.schedule_count;
+                    } else {
+                        console.error('加载失败:', data.error);
+                        showNotification('加载数据失败！');
+                    }
+                })
+                .catch(err => {
+                    console.error('请求错误:', err);
+                    showNotification('加载数据失败！');
+                });
+        }
+
+        // 页面加载完毕自动获取一次数据
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+    </script>
+</body>
+</html>

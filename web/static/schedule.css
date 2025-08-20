@@ -1,0 +1,441 @@
+/* 基础样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #fff;
+    min-height: 100vh;
+    padding-bottom: 2rem;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* 顶部导航栏 */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.logo i {
+    font-size: 1.8rem;
+    color: #ffcc00;
+}
+
+.logo h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(to right, #ffcc00, #ff6b00);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.user-actions {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.btn {
+    padding: 0.65rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    font-size: 0.95rem;
+}
+
+.btn-orders {
+    background-color: rgba(255, 204, 0, 0.15);
+    color: #ffcc00;
+    border: 1px solid rgba(255, 204, 0, 0.3);
+}
+
+.btn-orders:hover {
+    background-color: rgba(255, 204, 0, 0.25);
+    transform: translateY(-2px);
+}
+
+.btn-logout {
+    background-color: rgba(255, 90, 90, 0.15);
+    color: #ff5a5a;
+    border: 1px solid rgba(255, 90, 90, 0.3);
+}
+
+.btn-logout:hover {
+    background-color: rgba(255, 90, 90, 0.25);
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: linear-gradient(to right, #ffcc00, #ff6b00);
+    color: #1a1a1a;
+    font-weight: 600;
+    border: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 204, 0, 0.3);
+}
+
+/* 返回按钮优化 */
+.back-button-container {
+    margin: 0.8rem 0;
+    padding: 0;
+}
+
+.back-button {
+    padding: 0.5rem 1rem;
+    background-color: rgba(0, 0, 0, 0.4);
+    color: #aaa;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.back-button:hover {
+    background-color: rgba(255, 204, 0, 0.1);
+    color: #ffcc00;
+    transform: translateX(-3px);
+}
+
+/* 电影信息卡片 */
+.movie-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 2rem;
+    margin: 1.5rem 0 2rem;
+    padding: 2rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    align-items: start;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.movie-poster {
+    width: 100%;
+    height: 280px;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    background-position: center;
+    background-size: cover;
+    background-image: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80');
+}
+
+.movie-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #fff;
+}
+
+.movie-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.movie-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.movie-description {
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 800px;
+}
+
+/* 日期选择容器 */
+.date-selector {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+    color: #ffcc00;
+}
+
+.dates-container {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 1rem 0;
+    scrollbar-width: thin;
+}
+
+/* 日期项样式 - 修改部分 */
+.date-item {
+    flex: 0 0 auto;
+    width: 100px; /* 宽度增加 */
+    padding: 1.2rem 0.5rem; /* 增加内边距 */
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid transparent; /* 边框加宽 */
+}
+
+.date-item.selected {
+    background-color: #ffcc00;
+    color: #1a1a1a;
+    font-weight: bold;
+    border: 3px solid #ffcc00; /* 边框加宽 */
+    box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
+}
+
+.date-day {
+    font-size: 0.9rem; /* 字体稍大 */
+    margin-bottom: 0.3rem; /* 增加间距 */
+    font-weight: 600; /*加粗 */
+}
+
+.date-week {
+    font-size: 0.8rem; /* 字体稍大 */
+    opacity: 0.9; /* 提高可见性 */
+}
+
+/* 场次选择区域 */
+.screening-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.screening-card {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.screening-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(to right, #ffcc00, #ff6b00);
+}
+
+.screening-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 204, 0, 0.3);
+}
+
+.screening-time {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #ffcc00;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: baseline;
+}
+
+.screening-end {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-left: 5px;
+}
+
+.screening-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 20px 0;
+    padding: 15px 0;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.screening-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+}
+
+.screening-label {
+    color: #aaa;
+    font-size: 0.95rem;
+}
+
+.screening-value {
+    font-weight: 500;
+    text-align: right;
+    font-size: 1.05rem;
+}
+
+.screening-price {
+    color: #ffcc00;
+    font-weight: 600;
+    font-size: 1.4rem;
+}
+
+.screening-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .movie-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .movie-poster {
+        width: 200px;
+        height: 280px;
+        margin: 0 auto;
+    }
+    
+    .movie-meta {
+        justify-content: center;
+    }
+    
+    .date-item {
+        min-width: 100px; /* 保持原有响应式宽度 */
+        padding: 1.2rem 0.8rem; /* 增加内边距 */
+    }
+    
+    .screening-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .logo h1 {
+        font-size: 1.7rem;
+    }
+    
+    .user-actions {
+        gap: 0.5rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .date-item {
+        min-width: 90px; /* 保持原有响应式宽度 */
+        padding: 1rem 0.6rem; /* 增加内边距 */
+    }
+    
+    .date-day {
+        font-size: 1.1rem;
+    }
+    
+    .movie-title {
+        font-size: 1.8rem;
+    }
+    
+    .movie-poster {
+        width: 150px;
+        height: 210px;
+    }
+    
+    .logo {
+        gap: 0.5rem;
+    }
+    
+    .logo h1 {
+        font-size: 1.4rem;
+    }
+    
+    .user-actions {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+    
+    .btn {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* 新增样式：无排片信息提示 */
+.no-schedules {
+    text-align: center;
+    padding: 2rem;
+    color: #aaa;
+    grid-column: 1 / -1;
+    font-style: italic;
+}
+
+/* 新增样式：滚动条美化 */
+.dates-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.dates-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.dates-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 204, 0, 0.5);
+    border-radius: 10px;
+}

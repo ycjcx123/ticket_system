@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光影影院 - 我的订单</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/order.css">
+    <link rel="stylesheet" href="../static/base.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-film"></i>
+                <h1>光影影院</h1>
+            </div>
+            <div>
+                <button class="btn btn-secondary" onclick=window.history.back()>
+                    <i class="fas fa-arrow-left"></i> 返回
+                </button>
+                <div class="user-actions">
+                    <button class="btn btn-logout" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> 退出账户
+                    </button>
+                </div>
+            <div>
+        </header>
+
+        <main class="orders-container">
+            <div class="user-nav">
+                <h2 class="section-title" id="pageTitle">订单列表</h2>
+                <!-- 搜索栏（仅管理员显示） -->
+                <div id="searchBar" class="search-bar">
+                    <div class="search-container">
+                        <div class="input-container">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="searchUserId" placeholder="按用户ID搜索">
+                        </div>
+                        <div class="input-container">
+                            <i class="fas fa-ticket-alt input-icon"></i>
+                            <input type="text" id="searchOrderId" placeholder="按订单ID搜索">
+                        </div>
+                        <button class="btn btn-primary search-btn" onclick="renderOrders()">
+                            <i class="fas fa-search"></i> 搜索
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ordersList">
+                <!-- 订单按日期分组 -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        async function fetchOrders() {
+            const params = [];
+            if (document.getElementById('searchUserId')) {
+                const uid = document.getElementById('searchUserId').value.trim();
+                if (uid) params.push(`user_id=${uid}`);
+            }
+            if (document.getElementById('searchOrderId')) {
+                const oid = document.getElementById('searchOrderId').value.trim();
+                if (oid) params.push(`order_id=${oid}`);
+            }
+            const query = params.length ? '?' + params.join('&') : '';
+            const response = await fetch('/api/orders' + query);
+            return await response.json();
+        }
+
+        async function renderOrders() {
+            const data = await fetchOrders();
+            const ordersList = document.getElementById('ordersList');
+
+            if (data.error) {
+                ordersList.innerHTML = `<p style="color:red;">${data.error}</p>`;
+                return;
+            }
+
+            const role = data.role;
+            const ordersData = data.orders;
+
+            // 管理员显示搜索栏
+            if (role === 'admin') {
+                document.getElementById('searchBar').innerHTML = `
+                    <div class="search-container">
+                        <div class="input-container">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="searchUserId" placeholder="按用户ID搜索">
+                        </div>
+                        <div class="input-container">
+                            <i class="fas fa-ticket-alt input-icon"></i>
+                            <input type="text" id="searchOrderId" placeholder="按订单ID搜索">
+                        </div>
+                        <button class="btn btn-primary search-btn" onclick="renderOrders()">
+                            <i class="fas fa-search"></i> 搜索
+                        </button>
+                    </div>
+                `;
+                document.getElementById('searchBar').style.display = 'block';
+            } else {
+                document.getElementById('pageTitle').innerText = "我的订单";
+                document.getElementById('searchBar').style.display = 'none';
+            }
+
+            if (!ordersData || ordersData.length === 0) {
+                ordersList.innerHTML = `
+                    <div class="no-orders">
+                        <i class="fas fa-ticket-alt"></i>
+                        <h3>暂无订单记录</h3>
+                    </div>
+                `;
+                return;
+            }
+
+            const grouped = {};
+            ordersData.forEach(order => {
+                if (!grouped[order.date]) grouped[order.date] = [];
+                grouped[order.date].push(order);
+            });
+
+            const dates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+
+            let ordersHTML = '';
+            dates.forEach(date => {
+                ordersHTML += `
+                    <div class="date-group">
+                        <div class="date-header">
+                            <div class="date-icon"><i class="fas fa-calendar-day"></i></div>
+                            <div class="date-text">${date}</div>
+                        </div>
+                        <div class="order-cards">
+                `;
+
+                grouped[date].forEach(order => {
+                    ordersHTML += `
+                        <div class="ticket-card">
+                            <div class="ticket-header"><div class="theater-name">光影影院</div></div>
+                            <div class="ticket-content">
+                                <div class="ticket-row">
+                                    <span class="ticket-label">订单号</span>
+                                    <span class="ticket-value">${order.id}</span>
+                                </div>
+                                <div class="ticket-row">
+                                    <span class="ticket-label">用户ID</span>
+                                    <span class="ticket-value">${order.user_id}</span>
+                                </div>
+                                <div class="movie-title">${order.movie}</div>
+                                <div class="ticket-row">
+                                    <span class="ticket-label">时间</span>
+                                    <span class="ticket-value">${order.time.substring(11, 16)}</span>
+                                </div>
+                                <div class="ticket-row">
+                                    <span class="ticket-label">影厅</span>
+                                    <span class="ticket-value">${order.hall}</span>
+                                </div>
+                                <div class="ticket-row">
+                                    <span class="ticket-label">座位</span>
+                                    <span class="ticket-value">
+                                        <div class="seats">
+                                            ${order.seats.map(seat => `<span class="seat">${seat}</span>`).join('')}
+                                        </div>
+                                    </span>
+                                </div>
+                                <div class="ticket-row">
+                                    <span class="ticket-label">价格</span>
+                                    <span class="ticket-value">¥${order.price.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="ticket-footer">
+                                <span class="order-status status-${order.status === '已完成' ? 'completed' : 'cancelled'}">${order.status}</span>
+                                ${role === 'admin' ? 
+                                    `<button class="btn btn-delete" data-order-id="${order.id}" onclick="handleDeleteOrder('${order.id}')">
+                                        <i class="fas fa-trash"></i> 删除
+                                    </button>` 
+                                    : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                ordersHTML += `</div></div>`;
+            });
+
+            ordersList.innerHTML = ordersHTML;
+        }
+        
+        async function handleDeleteOrder(orderId) {
+            if (confirm('确定要删除这个订单吗？此操作不可撤销！')) {
+                try {
+                    const response = await fetch(`/api/delete_order?orderID=${orderId}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        renderOrders(); // 刷新列表
+                    } else {
+                        alert(`删除失败: ${result.message || '未知错误'}`);
+                    }
+                } catch (error) {
+                    alert(`删除过程中出错: ${error.message}`);
+                }
+            }
+        }
+
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            window.location.href = '/logout';
+        });
+
+        window.onload = renderOrders;
+    </script>
+</body>
+</html>

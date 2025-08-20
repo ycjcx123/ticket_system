@@ -1,0 +1,408 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #1a2a6c, #1a1a2e, #1a2a6c);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 30px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo i {
+    font-size: 2.5rem;
+    color: #ffcc00;
+}
+
+.logo h1 {
+    font-size: 2rem;
+    background: linear-gradient(to right, #ffcc00, #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn {
+    padding: 12px 25px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-logout {
+    background: rgba(255, 100, 100, 0.2);
+    color: #ff6b6b;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* 订单页面特定样式 */
+.orders-container {
+    padding: 20px;
+}
+
+.date-group {
+    margin-bottom: 40px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.date-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(255, 204, 0, 0.5);
+}
+
+.date-icon {
+    background: #ffcc00;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+}
+
+.date-icon i {
+    color: #1a1a2e;
+    font-size: 1.2rem;
+}
+
+.date-text {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #ffcc00;
+}
+
+.order-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+}
+
+.ticket-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    position: relative;
+    color: #333;
+    transition: transform 0.3s ease;
+}
+
+.ticket-card:hover {
+    transform: translateY(-8px);
+}
+
+.ticket-header {
+    background: linear-gradient(to right, #ff6b00, #ffcc00);
+    padding: 15px 20px;
+    text-align: center;
+    position: relative;
+}
+
+.ticket-header::after {
+    content: "••••••••••••••••••••••••••••••••••••••••••••••••••";
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    right: 0;
+    color: rgba(0, 0, 0, 0.2);
+    letter-spacing: 2px;
+    font-size: 1.5rem;
+    line-height: 0.1;
+}
+
+.theater-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #1a1a2e;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.ticket-content {
+    padding: 20px;
+}
+
+.ticket-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed #ddd;
+}
+
+.ticket-row:last-child {
+    border-bottom: none;
+}
+
+.ticket-label {
+    font-weight: bold;
+    color: #666;
+    min-width: 70px;
+}
+
+.ticket-value {
+    text-align: right;
+    flex-grow: 1;
+    color: #1a1a2e;
+    font-weight: 500;
+}
+
+.movie-title {
+    font-size: 1.3rem;
+    color: #ff6b00;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.seats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+.seat {
+    background: #ffcc00;
+    color: #1a1a2e;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.ticket-footer {
+    background: #f8f8f8;
+    padding: 15px 20px;
+    text-align: center;
+    position: relative;
+    border-top: 1px dashed #ddd;
+}
+
+.ticket-footer::before {
+    content: "••••••••••••••••••••••••••••••••••••••••••••••••••";
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    color: rgba(0, 0, 0, 0.2);
+    letter-spacing: 2px;
+    font-size: 1.5rem;
+    line-height: 0.1;
+}
+
+.order-status {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.status-completed {
+    background: rgba(46, 204, 113, 0.2);
+    color: #27ae60;
+}
+
+.status-cancelled {
+    background: rgba(231, 76, 60, 0.2);
+    color: #c0392b;
+}
+
+.no-orders {
+    text-align: center;
+    padding: 50px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    margin-top: 20px;
+}
+
+.no-orders i {
+    font-size: 4rem;
+    color: #ffcc00;
+    margin-bottom: 20px;
+}
+
+.no-orders h3 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: #ffcc00;
+}
+
+@media (max-width: 768px) {
+    .order-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .date-text {
+        font-size: 1.2rem;
+    }
+    
+    .logo h1 {
+        font-size: 1.7rem;
+    }
+}
+
+/* 搜索栏样式 */
+.search-bar {
+    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: none; /* 默认隐藏，管理员模式下显示 */
+}
+
+.search-container {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.input-container {
+    position: relative;
+    flex: 1;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ffcc00;
+    z-index: 1;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+    outline: none;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.search-bar input:hover {
+    box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.5);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.search-bar input:focus {
+    box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.8);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.search-btn {
+    flex: 0 0 auto;
+    padding: 12px 25px;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .search-container {
+        flex-direction: column;
+    }
+    
+    .input-container {
+        width: 100%;
+    }
+    
+    .search-btn {
+        width: 100%;
+    }
+}
+
+/* 添加删除按钮样式 */
+.btn-delete {
+    background: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 10px;
+}
+
+.btn-delete:hover {
+    background: rgba(231, 76, 60, 0.3);
+    transform: translateY(-2px);
+}
+
+/* 调整底部布局 */
+.ticket-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}

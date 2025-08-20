@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>光影影院 - 选座购票</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/seat.css">
+    <link rel="stylesheet" href="../static/base.css">
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-film"></i>
+                <h1>光影影院</h1>
+            </div>
+            <div class="user-actions">
+                <button id="ordersBtn" class="btn btn-orders">
+                    <i class="fas fa-ticket-alt"></i>我的订单
+                </button>
+                <button id="logoutBtn" class="btn btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>退出
+                </button>
+            </div>
+        </header>
+    </div>
+
+    <div class="container">
+        <div class="back-button-container"></div>
+            <button class="btn btn-secondary" onclick="window.location.href='/buy-ticket?movieID={{movie.MovieID}}'">
+                <i class="fas fa-arrow-left"></i>重新选择场次
+            </button>
+        </div>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="container">
+        <div class="booking-header">
+            <div class="movie-info">
+                <div class="movie-poster">
+                    <img src="/static/movie_images/{{ movie.PosterPath }}" alt="{{ movie.MovieName }}">
+                </div>
+                <div class="movie-details">
+                    <div class="movie-title">{{ movie.MovieName }}</div>
+                    <div class="movie-meta">
+                        <span>{{ movie.MovieType }}</span>
+                        <span>{{ movie.Duration }}分钟</span>
+                    </div>
+                    <div class="movie-meta">
+                        <span>导演: {{ movie.Director }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="booking-meta">
+                <div class="booking-row">
+                    <span class="booking-label">影厅</span>
+                    <span class="booking-value">{{ schedule.HallName }}</span>
+                </div>
+                <div class="booking-row">
+                    <span class="booking-label">日期</span>
+                    <span class="booking-value">{{ schedule.ScheduleDateFormatted }}</span>
+                </div>
+                <div class="booking-row">
+                    <span class="booking-label">时间</span>
+                    <span class="booking-value">{{ schedule.StartTimeFormatted }} - {{ schedule.EndTimeFormatted }}</span>
+                </div>
+                <!-- 修改票价显示 -->
+                <div class="booking-row">
+                    <span class="booking-label">票价</span>
+                    <span class="booking-value">
+                        ¥{{ schedule.BasePrice }}（普通） / 
+                        ¥{{ vip_price }}（VIP）
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 座位图 -->
+        <div class="seating-container">
+            <div class="screen-container">
+                <div class="screen">荧幕</div>
+                <div class="screen-reflection"></div>
+            </div>
+            <div class="seats-grid">
+                {% set row_letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' %}
+                {% set grouped_seats = seats | groupby('RowNumber') %}
+                {% for row in grouped_seats %}
+                    <div class="seat-row">
+                        <div class="row-letter">{{ row_letters[row.grouper - 1] }}</div>
+                        {% for seat in row.list %}
+                            {% set label = seat.ColumnNumber %}
+                            <div class="seat
+                                {% if seat.SeatType == 'vip' %} vip{% endif %}
+                                {% if seat.SeatID in occupied_seat_ids %} occupied{% endif %}"
+                                data-seat-id="{{ seat.SeatID }}"
+                                data-seat-type="{{ seat.SeatType }}"
+                                data-actual-price="{{ seat.ActualPrice }}">
+                                <span>{{ label }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="seat-legend">
+                <div class="legend-item"><div class="legend-color available-color"></div><span>可选座位</span></div>
+                <div class="legend-item"><div class="legend-color vip-color"></div><span>VIP座位</span></div>
+                <div class="legend-item"><div class="legend-color selected-color"></div><span>已选座位</span></div>
+                <div class="legend-item"><div class="legend-color occupied-color"></div><span>已售座位</span></div>
+            </div>
+        </div>
+
+        <!-- 选座信息 -->
+        <div class="booking-summary">
+            <div class="summary-header">
+                <div class="summary-title">选座信息</div>
+                <div class="total-price">¥<span id="total-amount">0</span></div>
+            </div>
+
+            <div class="selected-seats" id="selected-seats">
+                <div class="no-seats">请选择座位</div>
+            </div>
+
+            <div class="actions">
+                <!-- <button class="btn btn-secondary"><i class="fas fa-arrow-left"></i>重新选择场次</button> -->
+                <button class="btn btn-primary" id="confirm-btn" disabled>
+                    <i class="fas fa-shopping-cart"></i>确认选座并支付
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">您已成功选择座位，请确认支付！</div>
+    <script>
+        const currentUserID = "{{ session['user_id'] }}";
+        const currentScheduleID = "{{ schedule.ScheduleID }}";
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const seats = document.querySelectorAll('.seat:not(.occupied)');
+            const selectedSeatsContainer = document.getElementById('selected-seats');
+            const totalAmountElement = document.getElementById('total-amount');
+            const confirmBtn = document.getElementById('confirm-btn');
+            const notification = document.getElementById('notification');
+
+            let selectedSeats = [];
+
+            seats.forEach(seat => {
+                seat.addEventListener('click', function () {
+                    const seatRow = this.parentElement.querySelector('.row-letter').textContent;
+                    const seatNumber = seatRow + this.querySelector('span').textContent;
+                    const isVip = this.classList.contains('vip');
+                    const price = parseFloat(this.getAttribute('data-actual-price'));
+                    const seatID = this.getAttribute('data-seat-id');
+
+                    const seatIndex = selectedSeats.findIndex(s => s.number === seatNumber);
+                    if (seatIndex === -1) {
+                        this.classList.add('selected');
+                        selectedSeats.push({
+                            number: seatNumber,
+                            isVip: isVip,
+                            price: price,
+                            seatID: seatID
+                        });
+                    } else {
+                        this.classList.remove('selected');
+                        selectedSeats.splice(seatIndex, 1);
+                    }
+
+                    updateBookingSummary();
+                });
+            });
+
+            function updateBookingSummary() {
+                if (selectedSeats.length === 0) {
+                    selectedSeatsContainer.innerHTML = '<div class="no-seats">请选择座位</div>';
+                } else {
+                    selectedSeatsContainer.innerHTML = '';
+                    selectedSeats.forEach(seat => {
+                        const seatElement = document.createElement('div');
+                        seatElement.className = `selected-seat ${seat.isVip ? 'vip' : ''}`;
+                        seatElement.innerHTML = `
+                            <i class="fas fa-chair"></i>
+                            <span>${seat.number} (${seat.isVip ? 'VIP' : '普通'})</span>
+                            <button class="seat-remove" data-seat="${seat.number}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        selectedSeatsContainer.appendChild(seatElement);
+                    });
+
+                    document.querySelectorAll('.seat-remove').forEach(btn => {
+                        btn.addEventListener('click', function () {
+                            const seatNumber = this.getAttribute('data-seat');
+                            removeSeat(seatNumber);
+                        });
+                    });
+                }
+
+                const totalAmount = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
+                totalAmountElement.textContent = totalAmount.toFixed(2);
+                confirmBtn.disabled = selectedSeats.length === 0;
+
+                totalAmountElement.parentElement.classList.add('price-change');
+                setTimeout(() => {
+                    totalAmountElement.parentElement.classList.remove('price-change');
+                }, 500);
+            }
+
+            function removeSeat(seatNumber) {
+                const index = selectedSeats.findIndex(s => s.number === seatNumber);
+                if (index !== -1) {
+                    selectedSeats.splice(index, 1);
+                }
+
+                document.querySelectorAll('.seat-row').forEach(row => {
+                    const rowLetter = row.querySelector('.row-letter').textContent;
+                    const colNumber = seatNumber.replace(rowLetter, '');
+
+                    row.querySelectorAll('.seat').forEach(seat => {
+                        if (seat.querySelector('span').textContent === colNumber) {
+                            seat.classList.remove('selected');
+                        }
+                    });
+                });
+
+                updateBookingSummary();
+            }
+
+            confirmBtn.addEventListener('click', function () {
+                if (selectedSeats.length > 0) {
+                    const orderData = {
+                        userID: currentUserID,
+                        scheduleID: currentScheduleID,
+                        seats: selectedSeats.map(seat => ({
+                            seatID: seat.seatID,
+                            price: seat.price
+                        }))
+                    };
+
+                    notification.style.display = 'block';
+                    notification.textContent = `您已成功选择${selectedSeats.length}个座位，请确认支付！`;
+
+                    setTimeout(() => {
+                        notification.style.display = 'none';
+                    }, 3000);
+
+                    setTimeout(() => {
+                        fetch('/submit_order', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(orderData)
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                alert(`支付成功！订单号：${result.orderID}`);
+                                window.location.reload();
+                            } else {
+                                alert("订单失败：" + result.error);
+                            }
+                        });
+                    }, 1000);
+                }
+            });
+        });
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        // 退出登录
+        logoutBtn.addEventListener('click', () => {
+            window.location.href = '/logout';  // 访问后端的登出路由
+        });
+
+        const ordersBtn = document.getElementById('ordersBtn');
+        // 跳转到我的订单页面
+        ordersBtn.addEventListener('click', () => {
+            window.location.href = '/check_order';
+        });
+    </script>
+
+</body>
+</html>

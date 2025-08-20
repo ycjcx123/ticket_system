@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光影影院 - 选择档期</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/base.css">
+    <link rel="stylesheet" href="../static/schedule.css">
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="container">
+        <!-- 顶部导航栏 -->
+        <header>
+            <div class="logo">
+                <i class="fas fa-film"></i>
+                <h1>光影影院</h1>
+            </div>
+            <div class="user-actions">
+                <button id="ordersBtn" class="btn btn-orders">
+                    <i class="fas fa-ticket-alt"></i>我的订单
+                </button>
+                <button id="logoutBtn" class="btn btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>退出
+                </button>
+            </div>
+        </header>
+    </div>
+
+    <div class="container">
+        <!-- 添加返回按钮 -->
+        <div class="back-button-container">
+             <button class="btn btn-secondary" onclick="window.location.href='/user/home'">
+                <i class="fas fa-arrow-left"></i>重新选择场次
+            </button>
+            <!-- <button class="back-button" onclick="window.location.href='/user/home'">
+                <i class="fas fa-arrow-left"></i> 返回上级
+            </button> -->
+        </div>
+
+    <!-- 档期选择主内容 -->
+    <div class="container">
+        <!-- 电影信息卡片 -->
+        <div class="movie-card">
+            <div class="movie-poster" style="background-image: url('/static/movie_images/{{ movie.PosterPath }}'); background-size: cover;"></div>
+            <div class="movie-details">
+                <div class="movie-title">{{ movie.MovieName }}</div>
+                <div class="movie-meta">
+                    <span><i class="fas fa-tag"></i> {{ movie.MovieType }}</span>
+                    <span><i class="fas fa-clock"></i> {{ movie.Duration }}分钟</span>
+                    <span><i class="fas fa-video"></i> {{ movie.Actors }}</span>
+                    <span><i class="fas fa-film"></i> {{ movie.Director }}</span>
+                </div>
+                <div class="movie-description">{{ movie.Description }}</div>
+            </div>
+        </div>
+        
+        <!-- 日期选择区域 -->
+        <div class="date-selector">
+            <h2 class="section-title"><i class="fas fa-calendar-alt"></i> 选择日期</h2>
+            <div class="dates-container">
+                {% for date in unique_dates %}
+                <div class="date-item {{ 'selected' if loop.first else '' }}" data-date="{{ date.date_str }}">
+                    <!-- <div class="date-day">{{ date.day_text }}</div> -->
+                    <div class="date-date">{{ date.date_display }}</div>
+                    <div class="date-week">{{ date.week_text }}</div>
+                    <div class="date-week">{{ date.week_type }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- 场次选择区域 -->
+        <h2 class="section-title"><i class="fas fa-clock"></i> 选择场次</h2>
+        <div class="screening-list">
+            {% for schedule in schedules %}
+            <div class="screening-card" data-date="{{ schedule.ScheduleDate }}">
+                <div class="screening-time">
+                    <!-- 修复时间格式：将timedelta转换为时间字符串 -->
+                    {{ "%02d:%02d"|format(schedule.StartTime.seconds//3600, (schedule.StartTime.seconds%3600)//60) }}
+                    <span class="screening-end">-{{ "%02d:%02d"|format(schedule.EndTime.seconds//3600, (schedule.EndTime.seconds%3600)//60) }}</span>
+                </div>
+                <div class="screening-details">
+                    <div class="screening-row">
+                        <span class="screening-label">影厅</span>
+                        <span class="screening-value">{{ schedule.HallName }}（{{ schedule.HallType }}）</span>
+                    </div>
+                    <div class="screening-row">
+                        <span class="screening-label">语言</span>
+                        <span class="screening-value">原版</span>
+                    </div>
+                    <div class="screening-row">
+                        <span class="screening-label">票价</span>
+                        <span class="screening-price">¥{{ "%.2f"|format(schedule.BasePrice) }}起</span>
+                    </div>
+                </div>
+                <div class="screening-actions">
+                    <a href="/select-seats?movieID={{movie.MovieID}}&scheduleID={{schedule.ScheduleID}}" class="btn btn-primary">
+                        选座购票
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="no-schedules">暂无排片信息</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // 处理日期格式化和显示逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            // 日期选择交互
+            const dateItems = document.querySelectorAll('.date-item');
+            const screeningCards = document.querySelectorAll('.screening-card');
+            
+            dateItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    // 更新选中状态
+                    dateItems.forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    
+                    // 筛选对应日期的场次
+                    const selectedDate = item.getAttribute('data-date');
+                    screeningCards.forEach(card => {
+                        if (card.getAttribute('data-date') === selectedDate) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            // 初始化显示第一天的场次
+            if (dateItems.length > 0) {
+                const firstDate = dateItems[0].getAttribute('data-date');
+                screeningCards.forEach(card => {
+                    if (card.getAttribute('data-date') !== firstDate) {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+            
+            // 场次选择高亮
+            screeningCards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.btn')) return;
+                    
+                    screeningCards.forEach(c => {
+                        c.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    });
+                    card.style.borderColor = '#ffcc00';
+                });
+            });
+        });
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        // 退出登录
+        logoutBtn.addEventListener('click', () => {
+            window.location.href = '/logout';  // 访问后端的登出路由
+        });
+
+        const ordersBtn = document.getElementById('ordersBtn');
+        // 跳转到我的订单页面
+        ordersBtn.addEventListener('click', () => {
+            window.location.href = '/check_order';
+        });
+    </script>
+</body>
+</html>

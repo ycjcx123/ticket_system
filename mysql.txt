@@ -1,0 +1,189 @@
+CREATE TABLE Users(
+    UserID CHAR(10) PRIMARY KEY,
+    Passwords VARCHAR(50) NOT NULL
+)
+
+CREATE TABLE Cinema(
+    CinemaID CHAR(10) PRIMARY KEY,
+    CinemaName VARCHAR(100) NOT NULL,
+    Locations VARCHAR(100) NOT NULL
+)
+
+CREATE TABLE Admins(
+    AdminID CHAR(10) PRIMARY KEY,
+    Passwords VARCHAR(50) NOT NULL,
+    CinemaID CHAR(10),
+    FOREIGN KEY (CinemaID) REFERENCES Cinema(CinemaID)
+)
+
+CREATE TABLE Hall(
+    HallID CHAR(10) PRIMARY KEY,
+    HallName VARCHAR(100),
+    HallType VARCHAR(50) NOT NULL,  -- 2D, 3D, IMAX
+    CinemaID CHAR(10), 
+    FOREIGN KEY (CinemaID) REFERENCES Cinema(CinemaID)
+)
+
+CREATE TABLE Movie(
+    MovieID CHAR(10) PRIMARY KEY,
+    MovieName VARCHAR(100) NOT NULL,
+    MovieType VARCHAR(50), -- 动作, 喜剧, 爱情, 科幻等
+    Duration INT NOT NULL, -- 电影时长，单位分钟
+    PosterPath VARCHAR(255), -- 电影海报路径
+    Director VARCHAR(100), -- 导演
+    Actors VARCHAR(100), -- 主演
+    Description TEXT -- 电影描述
+)
+
+-- 创建排片表
+CREATE TABLE Schedules(
+    ScheduleID CHAR(10) PRIMARY KEY,
+    MovieID CHAR(10) NOT NULL,
+    HallID CHAR(10) NOT NULL,
+    ScheduleDate DATE NOT NULL,
+    StartTime TIME NOT NULL,
+    EndTime TIME NOT NULL,
+    BasePrice DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (MovieID) REFERENCES Movie(MovieID),
+    FOREIGN KEY (HallID) REFERENCES Hall(HallID),
+    UNIQUE(HallID, ScheduleDate, StartTime)
+);
+
+--------------------------------------------触发器--------------------------------------------
+-- 结束时间计算触发器（处理跨天）（INSERT）
+DELIMITER $$
+CREATE TRIGGER SetScheduleEndTime
+BEFORE INSERT ON Schedules
+FOR EACH ROW
+BEGIN
+    DECLARE movie_duration INT;
+    DECLARE calculated_end DATETIME;
+
+    -- 查询电影时长
+    SELECT Duration INTO movie_duration
+    FROM Movie
+    WHERE MovieID = NEW.MovieID;
+
+    -- 正确计算结束时间（分钟转换为时间间隔）
+    SET calculated_end = TIMESTAMPADD(MINUTE, movie_duration, 
+        CONCAT(NEW.ScheduleDate, ' ', NEW.StartTime));
+    
+    -- 设置结束时间
+    SET NEW.EndTime = TIME(calculated_end);
+    
+    -- 跨天预警
+    IF DATE(calculated_end) > NEW.ScheduleDate THEN
+        SIGNAL SQLSTATE '01000' 
+        SET MESSAGE_TEXT = '排片结束时间跨越到次日，请确认';
+    END IF;
+END$$
+DELIMITER ;
+
+-- 排片冲突检查触发器（含30分钟间隔）（INSERT）
+DELIMITER $$
+CREATE TRIGGER CheckScheduleConflict
+BEFORE INSERT ON Schedules
+FOR EACH ROW
+BEGIN
+    -- 检查同影厅同日期的时间重叠
+    IF EXISTS (
+        SELECT 1 
+        FROM Schedules
+        WHERE HallID = NEW.HallID
+        AND ScheduleDate = NEW.ScheduleDate
+        AND (
+            (NEW.StartTime < ADDTIME(EndTime, '00:30:00'))
+            AND 
+            (ADDTIME(NEW.EndTime, '00:30:00') > StartTime)
+        )
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '新排片与现有放映时间冲突（需30分钟间隔）';
+    END IF;
+END$$
+DELIMITER ;
+
+-- 结束时间计算触发器（UPDATE）
+DELIMITER $$
+CREATE TRIGGER SetScheduleEndTime_BU
+BEFORE UPDATE ON Schedules
+FOR EACH ROW
+BEGIN
+    DECLARE movie_duration INT;
+    DECLARE calculated_end DATETIME;
+
+    SELECT Duration INTO movie_duration
+    FROM Movie
+    WHERE MovieID = NEW.MovieID;
+
+    SET calculated_end = TIMESTAMPADD(MINUTE, movie_duration, 
+        CONCAT(NEW.ScheduleDate, ' ', NEW.StartTime));
+    
+    SET NEW.EndTime = TIME(calculated_end);
+    
+    IF DATE(calculated_end) > NEW.ScheduleDate THEN
+        SIGNAL SQLSTATE '01000' 
+        SET MESSAGE_TEXT = '排片结束时间跨越到次日，请确认';
+    END IF;
+END$$
+DELIMITER ;
+
+-- 排片冲突检查（UPDATE）
+DELIMITER $$
+CREATE TRIGGER CheckScheduleConflict_BU
+BEFORE UPDATE ON Schedules
+FOR EACH ROW
+BEGIN
+    IF EXISTS (
+        SELECT 1 
+        FROM Schedules
+        WHERE HallID = NEW.HallID
+        AND ScheduleDate = NEW.ScheduleDate
+        AND ScheduleID <> NEW.ScheduleID -- 避免和自己比
+        AND (
+            (NEW.StartTime < ADDTIME(EndTime, '00:30:00'))
+            AND 
+            (ADDTIME(NEW.EndTime, '00:30:00') > StartTime)
+        )
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '修改后的排片与现有放映时间冲突（需30分钟间隔）';
+    END IF;
+END$$
+DELIMITER ;
+
+--------------------------------------------表--------------------------------------------
+
+CREATE TABLE Seat(
+    SeatID CHAR(10) PRIMARY KEY,
+    HallID CHAR(10) NOT NULL,
+    RowNumber INT UNSIGNED NOT NULL,
+    ColumnNumber INT UNSIGNED NOT NULL,
+    SeatType VARCHAR(20), -- 分为普通，vip。
+    Price DECIMAL(8,2) NOT NULL, -- 0 or 10
+    FOREIGN KEY (HallID) REFERENCES Hall(HallID),
+    UNIQUE (HallID, RowNumber, ColumnNumber)
+)
+
+CREATE TABLE Orders(
+    OrderID CHAR(10) PRIMARY KEY,
+    UserID CHAR(10) NOT NULL,
+    ScheduleID CHAR(10) NOT NULL,
+    TotalAmount DECIMAL(10,2) NOT NULL,  -- 订单总金额
+    PurchaseTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PaymentStatus BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID),
+    FOREIGN KEY (ScheduleID) REFERENCES Schedules(ScheduleID)
+);
+
+CREATE TABLE Order_Seat(
+    OrderID CHAR(10),
+    SeatID CHAR(10),
+    ScheduleID CHAR(10) NOT NULL,  -- 确保座位属于该场次
+    Price DECIMAL(8,2) NOT NULL,   -- 实际售价
+    PRIMARY KEY (OrderID, SeatID, ScheduleID),
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID),
+    FOREIGN KEY (ScheduleID) REFERENCES Schedules(ScheduleID),
+    UNIQUE (ScheduleID, SeatID)  -- 防止重复售座
+)
